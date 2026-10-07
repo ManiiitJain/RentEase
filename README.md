@@ -2,6 +2,9 @@
 
 > **RentEase** is a full-stack rental property marketplace connecting property owners and tenants across Gujarat (Ahmedabad, Gandhinagar, Surat, Vadodara) with direct rental requests, real-time status tracking, wishlist management, and zero middleman friction.
 
+**Live Production URL**: [https://innovative-assignment-tawny.vercel.app](https://innovative-assignment-tawny.vercel.app)  
+**Live API Healthcheck**: [https://innovative-assignment-tawny.vercel.app/api/health](https://innovative-assignment-tawny.vercel.app/api/health)
+
 ---
 
 ## 🌟 Key Features
