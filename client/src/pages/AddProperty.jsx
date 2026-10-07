@@ -3,19 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { propertyAPI, uploadAPI } from '../services/api';
+import { propertyAPI } from '../services/api';
 import {
   PROPERTY_TYPES,
   FURNISHED_TYPES,
   AMENITIES_LIST,
   CITIES,
 } from '../utils/helpers';
+import { DragDropUploader } from '../components/DragDropUploader';
 import toast from 'react-hot-toast';
 import {
   Building,
-  Upload,
-  Plus,
-  Trash2,
   CheckCircle,
   IndianRupee,
   MapPin,
@@ -41,8 +39,6 @@ export const AddProperty = () => {
   const [imageUrls, setImageUrls] = useState([
     'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=1200&q=80',
   ]);
-  const [newImageUrl, setNewImageUrl] = useState('');
-  const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
@@ -66,41 +62,6 @@ export const AddProperty = () => {
     setSelectedAmenities((prev) =>
       prev.includes(amenity) ? prev.filter((a) => a !== amenity) : [...prev, amenity]
     );
-  };
-
-  const handleAddImageUrl = (e) => {
-    e.preventDefault();
-    if (!newImageUrl.trim()) return;
-    setImageUrls((prev) => [...prev, newImageUrl.trim()]);
-    setNewImageUrl('');
-  };
-
-  const handleRemoveImage = (index) => {
-    setImageUrls((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleFileUpload = async (e) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append('images', files[i]);
-    }
-
-    setUploading(true);
-    try {
-      const res = await uploadAPI.uploadImages(formData);
-      if (res.data.success && res.data.urls) {
-        setImageUrls((prev) => [...prev, ...res.data.urls]);
-        toast.success(`${res.data.urls.length} image(s) uploaded successfully!`);
-      }
-    } catch (error) {
-      console.error('Upload failed:', error);
-      toast.error('Image upload failed. You can also paste public image URLs below.');
-    } finally {
-      setUploading(false);
-    }
   };
 
   const onSubmit = async (data) => {
@@ -340,75 +301,12 @@ export const AddProperty = () => {
           </div>
         </div>
 
-        {/* Image Upload & Management */}
+        {/* Image Upload & Management (Drag & Drop) */}
         <div className="space-y-4">
           <h3 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2">
-            4. Property Images
+            4. Property Images (Drag & Drop)
           </h3>
-
-          {/* File Upload Box */}
-          <div className="border-2 border-dashed border-slate-200 hover:border-primary-400 rounded-2xl p-6 text-center transition">
-            <Upload className="w-8 h-8 text-primary-500 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-slate-700">
-              Upload photos from your computer
-            </p>
-            <p className="text-xs text-slate-400 mt-0.5 mb-3">
-              Supports JPG, PNG, WEBP up to 5MB each
-            </p>
-            <label className="inline-flex items-center space-x-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold rounded-xl cursor-pointer transition">
-              <span>{uploading ? 'Uploading...' : 'Choose Files'}</span>
-              <input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                className="hidden"
-              />
-            </label>
-          </div>
-
-          {/* Or URL input */}
-          <div className="flex gap-2">
-            <input
-              type="url"
-              value={newImageUrl}
-              onChange={(e) => setNewImageUrl(e.target.value)}
-              placeholder="Or paste an image URL (e.g. Unsplash URL)..."
-              className="flex-1 px-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500"
-            />
-            <button
-              type="button"
-              onClick={handleAddImageUrl}
-              className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl flex items-center space-x-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Add URL</span>
-            </button>
-          </div>
-
-          {/* Image Previews */}
-          {imageUrls.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              {imageUrls.map((url, idx) => (
-                <div key={idx} className="relative group rounded-xl overflow-hidden aspect-[4/3] bg-slate-100 border border-slate-200">
-                  <img src={url} alt={`Preview ${idx + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveImage(idx)}
-                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-700 text-white transition opacity-0 group-hover:opacity-100"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                  {idx === 0 && (
-                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900/80 text-white">
-                      Cover
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
+          <DragDropUploader imageUrls={imageUrls} onChange={setImageUrls} />
         </div>
 
         {/* Submit */}

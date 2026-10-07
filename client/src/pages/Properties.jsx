@@ -12,7 +12,10 @@ import {
   ChevronRight,
   Inbox,
   ArrowUpDown,
+  Navigation,
 } from 'lucide-react';
+import { detectUserLocation } from '../utils/geolocation';
+import toast from 'react-hot-toast';
 
 export const Properties = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -149,16 +152,34 @@ export const Properties = () => {
                 setFilters((prev) => ({ ...prev, location: e.target.value, page: 1 }))
               }
               placeholder="Search by city or locality..."
-              className="w-full pl-10 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 shadow-sm"
+              className="w-full pl-10 pr-16 py-2 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-primary-500 shadow-sm"
             />
-            {filters.location && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center space-x-1">
+              {filters.location && (
+                <button
+                  onClick={() => setFilters((prev) => ({ ...prev, location: '', page: 1 }))}
+                  className="p-1 text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
               <button
-                onClick={() => setFilters((prev) => ({ ...prev, location: '', page: 1 }))}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                type="button"
+                onClick={async () => {
+                  try {
+                    const res = await detectUserLocation();
+                    setFilters((prev) => ({ ...prev, location: res.city, page: 1 }));
+                    toast.success(`Nearest location detected: ${res.city}`);
+                  } catch (e) {
+                    toast.error(e.message || 'Could not detect location');
+                  }
+                }}
+                title="Detect My Location (Geolocation)"
+                className="p-1 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition"
               >
-                <X className="w-3.5 h-3.5" />
+                <Navigation className="w-3.5 h-3.5" />
               </button>
-            )}
+            </div>
           </div>
 
           {/* Sort Dropdown */}

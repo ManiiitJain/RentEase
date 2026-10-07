@@ -1,13 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, MapPin, Home, IndianRupee } from 'lucide-react';
+import { Search, MapPin, Home, IndianRupee, Navigation, Loader2 } from 'lucide-react';
 import { PROPERTY_TYPES } from '../utils/helpers';
+import { detectUserLocation } from '../utils/geolocation';
+import toast from 'react-hot-toast';
 
 export const SearchBar = ({ initialValues = {}, onSearch }) => {
   const navigate = useNavigate();
   const [location, setLocation] = useState(initialValues.location || '');
   const [type, setType] = useState(initialValues.type || 'all');
   const [maxRent, setMaxRent] = useState(initialValues.maxRent || '');
+  const [locating, setLocating] = useState(false);
+
+  const handleDetectLocation = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLocating(true);
+    try {
+      const res = await detectUserLocation();
+      setLocation(res.city);
+      if (res.distanceKm !== undefined) {
+        toast.success(`Nearest hub detected: ${res.city} (~${res.distanceKm} km)`);
+      } else {
+        toast.success(`Location detected: ${res.city}!`);
+      }
+    } catch (err) {
+      toast.error(err.message || 'Could not detect location.');
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -28,10 +50,10 @@ export const SearchBar = ({ initialValues = {}, onSearch }) => {
       onSubmit={handleSubmit}
       className="bg-white rounded-2xl shadow-xl shadow-slate-200/60 p-2.5 sm:p-3 border border-slate-200/80 flex flex-col md:flex-row items-stretch md:items-center gap-2.5 md:gap-3"
     >
-      {/* Location Input */}
+      {/* Location Input with Geolocation button */}
       <div className="flex-1 flex items-center px-3 py-2 bg-slate-50 md:bg-transparent rounded-xl focus-within:ring-2 focus-within:ring-primary-500/20">
         <MapPin className="w-5 h-5 text-primary-500 mr-2.5 flex-shrink-0" />
-        <div className="w-full text-left">
+        <div className="w-full text-left relative pr-8">
           <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400">
             Location
           </label>
@@ -42,6 +64,20 @@ export const SearchBar = ({ initialValues = {}, onSearch }) => {
             placeholder="City, locality, e.g. Bodakdev, SG Highway"
             className="w-full bg-transparent text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-none"
           />
+          {/* Geolocation Button */}
+          <button
+            type="button"
+            onClick={handleDetectLocation}
+            disabled={locating}
+            title="Use My Current Location (Geolocation)"
+            className="absolute right-0 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-primary-600 hover:bg-primary-50 transition"
+          >
+            {locating ? (
+              <Loader2 className="w-4 h-4 animate-spin text-primary-600" />
+            ) : (
+              <Navigation className="w-4 h-4" />
+            )}
+          </button>
         </div>
       </div>
 
