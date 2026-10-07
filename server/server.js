@@ -53,7 +53,10 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Serve uploaded static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const staticUploads = process.env.VERCEL
+  ? path.join('/tmp', 'uploads')
+  : path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(staticUploads));
 
 // Root & Healthcheck
 app.get('/api/health', (req, res) => {
